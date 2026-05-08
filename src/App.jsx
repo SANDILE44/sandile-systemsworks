@@ -350,7 +350,8 @@ const App = () => (
   <Router>
     <Routes>
       <Route path="/" element={<MainEngine />} />
-      <Route path="deal/:id" element={<SharedDealPage />} /> 
+      {/* Add the leading slash here */}
+      <Route path="/deal/:id" element={<SharedDealPage />} /> 
     </Routes>
   </Router>
 );
