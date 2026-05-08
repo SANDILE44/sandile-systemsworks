@@ -55,30 +55,6 @@ const generateProfessionalPDF = (deal) => {
     console.error("PDF_CORE_CRASH:", error);
   }
 };
-//Delete button
-const deleteDeal = async (id) => {
-    // 1. Logic Gate: Always confirm before a destructive action
-    if (!window.confirm("CRITICAL: Erase this record from the Cloud Archive permanently?")) return;
-    
-    setIsLoading(true);
-    try {
-        // 2. Network Request: Target the specific ID on your Render backend
-        const res = await fetch(`${API_BASE_URL}/api/deals/${id}`, { 
-            method: 'DELETE' 
-        });
-
-        if (res.ok) {
-            // 3. State Synchronization: Remove the item locally so it disappears instantly
-            setSavedDeals(prevDeals => prevDeals.filter(deal => deal._id !== id));
-            alert("RECORD PURGED");
-        }
-    } catch (err) {
-        console.error("DELETE_ERROR:", err);
-        alert("NETWORK FAILURE: UNABLE TO REACH CLOUD");
-    } finally {
-        setIsLoading(false);
-    }
-};
 
 // --- VIEW: SECURE SHARED NODE ---
 const SharedDealPage = () => {
@@ -195,6 +171,32 @@ const MainEngine = () => {
       }
     } catch (err) { alert("NETWORK FAILURE"); }
     finally { setIsLoading(false); }
+  };
+
+  // --- DELETE BUTTON ---
+  const deleteDeal = async (id) => {
+    if (!window.confirm("CRITICAL: Erase this record from the Cloud Archive permanently?")) return;
+    
+    setIsLoading(true);
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/deals/${id}`, { 
+            method: 'DELETE' 
+        });
+
+        if (res.ok) {
+            // Instantly update the UI by filtering out the deleted ID
+            setSavedDeals(prev => prev.filter(deal => deal._id !== id));
+            alert("RECORD PURGED FROM CLOUD");
+        } else {
+            const errorData = await res.json();
+            alert(`SERVER ERROR: ${errorData.error}`);
+        }
+    } catch (err) {
+        console.error("DELETE_ERROR:", err);
+        alert("NETWORK FAILURE: UNABLE TO REACH CLOUD");
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
