@@ -83,37 +83,69 @@ const SharedDealPage = () => {
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/deals/${id}`)
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        } else {
-          throw new Error('Deal not found');
-        }
-      })
+      .then(res => res.ok ? res.json() : Promise.reject())
       .then(data => { setDeal(data); setLoading(false); })
       .catch(() => { setDeal(null); setLoading(false); });
   }, [id]);
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-emerald-500 font-mono animate-pulse">DECRYPTING LOGISTICS DATA...</div>;
-  if (!deal) return <div className="min-h-screen bg-black flex items-center justify-center text-red-500 font-bold tracking-widest">REPORT EXPIRED OR NOT FOUND</div>;
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-emerald-500 font-mono">ENCRYPTED DATA STREAM...</div>;
+  if (!deal) return <div className="min-h-screen bg-black flex items-center justify-center text-red-500">ACCESS DENIED: INVALID TOKEN</div>;
+
+  // Premium Calculations
+  const roi = ((deal.profit / (deal.totalCost || 1)) * 100).toFixed(2);
+  const date = new Date().toLocaleDateString();
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
-      <div className="max-w-xl w-full bg-zinc-900 border border-emerald-500/30 p-10 rounded-3xl shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl italic">SSW</div>
-        <h1 className="text-emerald-500 font-black italic text-xl mb-6">SANDILE SYSTEMSWORKS</h1>
-        <p className="text-xs text-zinc-500 mb-4 uppercase tracking-widest">Client: {deal.companyName}</p>
-        <div className="grid grid-cols-2 gap-6 mb-8 border-b border-zinc-800 pb-8">
+    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-10 flex flex-col items-center">
+      <div className="max-w-2xl w-full bg-black border border-zinc-800 p-8 rounded-t-3xl shadow-2xl">
+        <div className="flex justify-between items-center mb-10">
           <div>
-            <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Net Profit</p>
-            <p className="text-3xl font-mono text-emerald-400">R{Math.round(deal.profit).toLocaleString()}</p>
+            <h1 className="text-emerald-500 font-black text-xl italic leading-none">SANDILE SYSTEMSWORKS</h1>
+            <p className="text-[10px] text-zinc-500 tracking-[0.3em] uppercase">Project Insight Unit</p>
           </div>
-          <div>
-            <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Margin</p>
-            <p className="text-3xl font-mono text-white">{deal.margin?.toFixed(1)}%</p>
+          <div className="text-right">
+            <span className="bg-emerald-500/10 text-emerald-500 text-[9px] px-3 py-1 rounded-full border border-emerald-500/20 font-bold uppercase">Verified Analysis</span>
           </div>
         </div>
-        <button onClick={() => generateProfessionalPDF(deal)} className="w-full bg-emerald-500 text-black py-4 rounded-xl font-bold uppercase hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20">Download Intelligence Report</button>
+
+        <h2 className="text-3xl font-bold mb-2">Project Analysis Results</h2>
+        <p className="text-zinc-500 text-sm mb-8 italic">Consulting Analysis Report for {deal.companyName || 'Private Client'}</p>
+
+        <div className="space-y-4 mb-10">
+          <div className="flex justify-between border-b border-zinc-900 pb-3">
+            <span className="text-zinc-400">Net Profit</span>
+            <span className={`font-mono font-bold ${deal.profit >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
+              R {Math.round(deal.profit).toLocaleString()}
+            </span>
+          </div>
+          <div className="flex justify-between border-b border-zinc-900 pb-3">
+            <span className="text-zinc-400">Profit Margin</span>
+            <span className="font-mono">{deal.margin?.toFixed(2)}%</span>
+          </div>
+          <div className="flex justify-between border-b border-zinc-900 pb-3">
+            <span className="text-zinc-400">Return on Investment (ROI)</span>
+            <span className="font-mono text-amber-500">{roi}%</span>
+          </div>
+          <div className="flex justify-between border-b border-zinc-900 pb-3">
+            <span className="text-zinc-400">Final Decision</span>
+            <span className={`font-bold uppercase ${deal.margin >= 15 ? 'text-emerald-500' : 'text-red-600'}`}>
+              {deal.margin >= 15 ? 'Accept Trip' : 'Reject Trip'}
+            </span>
+          </div>
+        </div>
+
+        <button onClick={() => generateProfessionalPDF(deal)} className="w-full bg-white text-black py-4 rounded-xl font-bold hover:bg-emerald-500 transition-all mb-4">
+          Download PDF Report
+        </button>
+      </div>
+
+      <div className="max-w-2xl w-full bg-zinc-900/50 p-6 rounded-b-3xl border-x border-b border-zinc-800 text-center">
+        <p className="text-[10px] text-zinc-500 uppercase tracking-widest">
+          Sandile SystemsWorks SaaS • {date}
+        </p>
+        <p className="text-[9px] text-zinc-600 mt-1">
+          Proprietary Decision Engine © 2026 | Secure Analysis Verified
+        </p>
       </div>
     </div>
   );
