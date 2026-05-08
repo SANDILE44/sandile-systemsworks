@@ -340,11 +340,12 @@ const MainEngine = () => {
   );
 };
 
+// In App.jsx, make sure the Router is clean:
 const App = () => (
   <Router>
     <Routes>
       <Route path="/" element={<MainEngine />} />
-      <Route path="/deal/:id" element={<SharedDealPage />} />
+      <Route path="deal/:id" element={<SharedDealPage />} /> 
     </Routes>
   </Router>
 );
