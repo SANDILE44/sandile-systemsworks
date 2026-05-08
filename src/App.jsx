@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { jsPDF } from 'jspdf'; // Use curly braces
 import autoTable from 'jspdf-autotable'; // Import autoTable directly
 
@@ -326,8 +326,8 @@ const MainEngine = () => {
                     <td className="p-6">{deal.margin?.toFixed(1)}%</td>
                     <td className="p-6 text-right space-x-6">
                       <button onClick={() => generateProfessionalPDF(deal)} className="text-emerald-500 hover:text-white transition-colors uppercase text-[10px] font-bold">PDF</button>
-                      <button 
-  onClick={() => window.open(`${window.location.origin}/deal/${deal._id}`, '_blank')} 
+<button 
+  onClick={() => window.open(`${window.location.origin}/#/deal/${deal._id}`, '_blank')} 
   className="text-zinc-400 hover:text-white transition-colors uppercase text-[10px] font-bold underline"
 >
   Link
@@ -350,7 +350,6 @@ const App = () => (
   <Router>
     <Routes>
       <Route path="/" element={<MainEngine />} />
-      {/* Add the leading slash here */}
       <Route path="/deal/:id" element={<SharedDealPage />} /> 
     </Routes>
   </Router>
