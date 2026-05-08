@@ -8,54 +8,66 @@ const API_BASE_URL = "https://systems-j894.onrender.com";
 // --- PDF GENERATION ENGINE (Fixed Keys) ---
 const generateProfessionalPDF = (deal) => {
   try {
-    const doc = jsPDF();
+    const doc = new jsPDF();
+    
+    // 1. SAFE DATA EXTRACTION (Prevents NaN Errors)
     const distance = Number(deal.distance) || 0;
     const offer = Number(deal.clientOffer) || 0;
-    const fuel = Number(deal.fuelPrice) || 0;
-    const profit = Number(deal.profit) || 0;
-    const totalCost = Number(deal.totalCost) || 0;
-    const margin = Number(deal.margin) || 0;
-    const recommended = Number(deal.recommendedPrice) || 0;
+    const fuel = Number(deal.fuelPrice || 0);
+    const profit = Number(deal.profit || 0);
+    const totalCost = Number(deal.totalCost || 0);
+    const margin = Number(deal.margin || 0);
+    const recommended = Number(deal.recommendedPrice || 0);
+    const company = deal.companyName || "SANDILE SYSTEMSWORKS";
 
-    doc.setFillColor(16, 185, 129); 
+    // 2. HEADER DESIGN
+    doc.setFillColor(16, 185, 129); // Emerald Green
     doc.rect(0, 0, 210, 40, 'F');
+    
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
-    doc.text("SANDILE SYSTEMSWORKS", 14, 25);
+    doc.text("LOGISTICS INTELLIGENCE", 14, 25);
+    
     doc.setFontSize(10);
-    doc.text(`INTELLIGENCE FOR: ${deal.companyName?.toUpperCase() || 'GENERAL OPERATIONS'}`, 14, 32);
+    doc.setFont("helvetica", "normal");
+    doc.text(`CLIENT: ${company.toUpperCase()}`, 14, 32);
 
+    // 3. TABLE BODY
     const tableData = [
-      ["Operational Distance", `${distance} KM`],
-      ["Client Offer Price", `R ${offer.toLocaleString()}`],
-      ["Fuel Rate (Litre)", `R ${fuel}/L`],
-      ["Total Operating Costs", `R ${Math.round(totalCost).toLocaleString()}`],
-      ["Projected Net Profit", `R ${Math.round(profit).toLocaleString()}`],
-      ["Operating Margin", `${margin.toFixed(2)}%`],
-      ["System Verdict", deal.verdict || "ANALYZED"],
-      ["Target Price (20% Margin)", recommended ? `R ${Math.round(recommended).toLocaleString()}` : "N/A"]
+      ["Metric Analysis", "Financial Value"],
+      ["Trip Distance", `${distance} KM`],
+      ["Gross Offer Price", `R ${offer.toLocaleString()}`],
+      ["Fuel Rate Applied", `R ${fuel.toFixed(2)}/L`],
+      ["Operating Costs", `R ${Math.round(totalCost).toLocaleString()}`],
+      ["Net Profit", `R ${Math.round(profit).toLocaleString()}`],
+      ["Profit Margin", `${margin.toFixed(2)}%`],
+      ["Target Price (20%)", `R ${Math.round(recommended).toLocaleString()}`]
     ];
 
+    // 4. GENERATE TABLE
     doc.autoTable({
-      startY: 65,
-      head: [['Metric Analysis', 'Financial Value']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [16, 185, 129] }
+      startY: 50,
+      body: tableData.slice(1), // Exclude header row for body
+      head: [tableData[0]],      // Set header row
+      theme: 'grid',
+      headStyles: { fillColor: [16, 185, 129], fontStyle: 'bold' },
+      styles: { fontSize: 11, cellPadding: 5 }
     });
 
+    // 5. FOOTER
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text(`Report ID: ${deal._id || 'DRAFT'} | Generated: ${new Date().toLocaleString()}`, 14, 280);
-    doc.text("© Sandile SystemsWorks - Enterprise Logistics Logic", 14, 285);
+    doc.text(`Doc ID: ${deal._id || 'INTERNAL'} | Authored by Sandile SystemsWorks`, 14, 285);
     
-    doc.save(`Logistics_Report_${deal.companyName || 'Draft'}.pdf`);
+    // 6. FINAL SAVE
+    doc.save(`Report_${company.replace(/\s+/g, '_')}.pdf`);
+
   } catch (error) {
-    console.error("PDF Error:", error);
+    console.error("CRITICAL PDF GENERATION FAILURE:", error);
+    alert("PDF Engine Error: Check console for data integrity issues.");
   }
 };
-
 // --- VIEW: SHARED REPORT ---
 const SharedDealPage = () => {
   const { id } = useParams();
