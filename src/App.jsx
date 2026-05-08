@@ -109,7 +109,7 @@ const SharedDealPage = () => {
         </div>
 
         <h2 className="text-3xl font-bold mb-2">Project Analysis Results</h2>
-        <p className="text-zinc-500 text-sm mb-8 italic">Consulting Analysis Report for {deal.companyName || 'Private Client'}</p>
+        <p className="text-zinc-500 text-sm mb-8 italic">Logistic Analysis Report for {deal.companyName || 'Private Client'}</p>
 
         <div className="space-y-4 mb-10">
           <div className="flex justify-between border-b border-zinc-900 pb-3">
