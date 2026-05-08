@@ -46,18 +46,21 @@ const generateProfessionalPDF = (deal) => {
     ];
 
     // 4. GENERATE TABLE
-// To this:
-autoTable(doc, {
-  startY: 50,
-  head: [['Metric Analysis', 'Financial Value']],
-  body: [
-    ["Trip Distance", `${distance} KM`],
-    ["Gross Offer Price", `R ${offer.toLocaleString()}`],
-    // ... rest of your data
-  ],
-  theme: 'grid',
-  headStyles: { fillColor: [16, 185, 129] }
-});
+    autoTable(doc, {
+      startY: 50,
+      head: [['Metric Analysis', 'Financial Value']],
+      body: [
+        ["Trip Distance", `${distance} KM`],
+        ["Gross Offer Price", `R ${offer.toLocaleString()}`],
+        ["Fuel Rate Applied", `R ${fuel.toFixed(2)}/L`],
+        ["Operating Costs", `R ${Math.round(totalCost).toLocaleString()}`],
+        ["Net Profit", `R ${Math.round(profit).toLocaleString()}`],
+        ["Profit Margin", `${margin.toFixed(2)}%`],
+        ["Target Price (20%)", `R ${Math.round(recommended).toLocaleString()}`]
+      ],
+      theme: 'grid',
+      headStyles: { fillColor: [16, 185, 129] }
+    });
 
     // 5. FOOTER
     doc.setFontSize(8);
@@ -80,9 +83,15 @@ const SharedDealPage = () => {
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/deals/${id}`)
-      .then(res => res.json())
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw new Error('Deal not found');
+        }
+      })
       .then(data => { setDeal(data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { setDeal(null); setLoading(false); });
   }, [id]);
 
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-emerald-500 font-mono animate-pulse">DECRYPTING LOGISTICS DATA...</div>;
@@ -133,21 +142,6 @@ const MainEngine = () => {
 
   const isRejected = calculation.margin < 15;
 
-  const saveDeal = async () => {
-    if(!inputs.companyName) return alert("ENTER COMPANY NAME TO TAG DATA");
-    setIsLoading(true);
-    const payload = { ...inputs, fuelPrice: dieselPrice, ...calculation, verdict: isRejected ? 'REJECT' : 'ACCEPT' };
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/deals`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) alert(`LOGGED TO ${inputs.companyName.toUpperCase()} CLOUD`);
-    } catch (err) { alert("CONNECTION ERROR"); }
-    finally { setIsLoading(false); }
-  };
-
   const fetchHistory = async () => {
     setIsLoading(true);
     try {
@@ -159,6 +153,25 @@ const MainEngine = () => {
       setSavedDeals(Array.isArray(data) ? data : []);
       setView('history');
     } catch (err) { setSavedDeals([]); }
+    finally { setIsLoading(false); }
+  };
+
+  const saveDeal = async () => {
+    if(!inputs.companyName) return alert("ENTER COMPANY NAME TO TAG DATA");
+    setIsLoading(true);
+    const payload = { ...inputs, fuelPrice: dieselPrice, ...calculation, verdict: isRejected ? 'REJECT' : 'ACCEPT' };
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/deals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        alert(`LOGGED TO ${inputs.companyName.toUpperCase()} CLOUD`);
+        // Refresh history after saving
+        fetchHistory();
+      }
+    } catch (err) { alert("CONNECTION ERROR"); }
     finally { setIsLoading(false); }
   };
 
