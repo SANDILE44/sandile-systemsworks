@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router-dom';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf'; // Use curly braces
+import autoTable from 'jspdf-autotable'; // Import autoTable directly
 
 const API_BASE_URL = "https://systems-j894.onrender.com";
 
@@ -46,14 +46,18 @@ const generateProfessionalPDF = (deal) => {
     ];
 
     // 4. GENERATE TABLE
-    doc.autoTable({
-      startY: 50,
-      body: tableData.slice(1), // Exclude header row for body
-      head: [tableData[0]],      // Set header row
-      theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129], fontStyle: 'bold' },
-      styles: { fontSize: 11, cellPadding: 5 }
-    });
+// To this:
+autoTable(doc, {
+  startY: 50,
+  head: [['Metric Analysis', 'Financial Value']],
+  body: [
+    ["Trip Distance", `${distance} KM`],
+    ["Gross Offer Price", `R ${offer.toLocaleString()}`],
+    // ... rest of your data
+  ],
+  theme: 'grid',
+  headStyles: { fillColor: [16, 185, 129] }
+});
 
     // 5. FOOTER
     doc.setFontSize(8);
