@@ -241,7 +241,7 @@ const MainEngine = () => {
             <div className="space-y-6">
               <div className="group">
                 <label className="text-[9px] text-zinc-500 uppercase ml-2 italic text-emerald-500">Target Client / Company Name</label>
-                <input type="text" placeholder="e.g. Richards Bay Transporters" className="w-full bg-zinc-950 border border-emerald-500/20 p-5 rounded-2xl outline-none focus:border-emerald-500 text-lg font-bold" value={inputs.companyName} onChange={(e) => setInputs({...inputs, companyName: e.target.value})} />
+                <input type="text" placeholder=" Client/Company name" className="w-full bg-zinc-950 border border-emerald-500/20 p-5 rounded-2xl outline-none focus:border-emerald-500 text-lg font-bold" value={inputs.companyName} onChange={(e) => setInputs({...inputs, companyName: e.target.value})} />
               </div>
               <div className="group">
                 <label className="text-[9px] text-zinc-500 uppercase ml-2">Total Trip Distance (KM)</label>
@@ -326,7 +326,12 @@ const MainEngine = () => {
                     <td className="p-6">{deal.margin?.toFixed(1)}%</td>
                     <td className="p-6 text-right space-x-6">
                       <button onClick={() => generateProfessionalPDF(deal)} className="text-emerald-500 hover:text-white transition-colors uppercase text-[10px] font-bold">PDF</button>
-                      <button onClick={() => window.open(`/deal/${deal._id}`, '_blank')} className="text-zinc-400 hover:text-white transition-colors uppercase text-[10px] font-bold underline">Link</button>
+                      <button 
+  onClick={() => window.open(`${window.location.origin}/deal/${deal._id}`, '_blank')} 
+  className="text-zinc-400 hover:text-white transition-colors uppercase text-[10px] font-bold underline"
+>
+  Link
+</button>
                       <button onClick={() => deleteDeal(deal._id)} className="text-red-900 hover:text-red-500 transition-colors uppercase text-[10px] font-bold">Delete</button>
                     </td>
                   </tr>
