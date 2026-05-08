@@ -7,45 +7,59 @@ const API_BASE_URL = "https://systems-j894.onrender.com";
 
 // --- PROFESSIONAL PDF ENGINE ---
 const generateProfessionalPDF = (deal) => {
-  const doc = new jsPDF();
-  const timestamp = new Date(deal.createdAt || Date.now()).toLocaleString();
+  try {
+    const doc = new jsPDF();
+    
+    // Safety check: ensure we have numbers
+    const distance = Number(deal.distance) || 0;
+    const offer = Number(deal.clientOffer) || 0;
+    const fuel = Number(deal.fuelPrice || deal.dieselPrice) || 0;
+    const profit = Number(deal.profit) || 0;
+    const totalCost = Number(deal.totalCost) || 0;
+    const margin = Number(deal.margin) || 0;
+    const recommended = Number(deal.recommendedPrice) || 0;
 
-  // Emerald Branding
-  doc.setFillColor(16, 185, 129); 
-  doc.rect(0, 0, 210, 40, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
-  doc.setFont("helvetica", "bold");
-  doc.text("SANDILE SYSTEMSWORKS", 14, 25);
-  doc.setFontSize(10);
-  doc.text("LOGISTICS INTELLIGENCE REPORT | RICHARDS BAY SECTOR", 14, 32);
+    // Emerald Branding
+    doc.setFillColor(16, 185, 129); 
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("SANDILE SYSTEMSWORKS", 14, 25);
+    doc.setFontSize(10);
+    doc.text("LOGISTICS INTELLIGENCE REPORT | RICHARDS BAY SECTOR", 14, 32);
 
-  const tableData = [
-    ["Metric", "Value"],
-    ["Distance", `${deal.distance} KM`],
-    ["Client Offer", `R ${Number(deal.clientOffer).toLocaleString()}`],
-    ["Diesel Rate", `R ${deal.fuelPrice}/L`],
-    ["Total Operating Cost", `R ${Math.round(deal.totalCost).toLocaleString()}`],
-    ["Projected Net Profit", `R ${Math.round(deal.profit).toLocaleString()}`],
-    ["Profit Margin", `${deal.margin?.toFixed(2)}%`],
-    ["System Verdict", deal.verdict],
-    ["Recommended Price", deal.recommendedPrice ? `R ${Math.round(deal.recommendedPrice).toLocaleString()}` : "N/A"]
-  ];
+    const tableData = [
+      ["Metric", "Value"],
+      ["Distance", `${distance} KM`],
+      ["Client Offer", `R ${offer.toLocaleString()}`],
+      ["Diesel Rate", `R ${fuel}/L`],
+      ["Total Operating Cost", `R ${Math.round(totalCost).toLocaleString()}`],
+      ["Projected Net Profit", `R ${Math.round(profit).toLocaleString()}`],
+      ["Profit Margin", `${margin.toFixed(2)}%`],
+      ["System Verdict", deal.verdict || "ANALYZED"],
+      ["Recommended Price", recommended ? `R ${Math.round(recommended).toLocaleString()}` : "N/A"]
+    ];
 
-  doc.autoTable({
-    startY: 65,
-    head: [['Strategic Analysis', 'Financial Breakdown']],
-    body: tableData,
-    theme: 'striped',
-    headStyles: { fillColor: [16, 185, 129] }
-  });
+    doc.autoTable({
+      startY: 65,
+      head: [['Strategic Analysis', 'Financial Breakdown']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [16, 185, 129] }
+    });
 
-  doc.setFontSize(8);
-  doc.setTextColor(150);
-  doc.text("© Sandile SystemsWorks - Enterprise Logistics Logic", 14, 285);
-  doc.save(`SSW_Report_${deal._id || 'Draft'}.pdf`);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`Report ID: ${deal._id || 'DRAFT'} | Generated: ${new Date().toLocaleString()}`, 14, 280);
+    doc.text("© Sandile SystemsWorks - Enterprise Logistics Logic", 14, 285);
+    
+    doc.save(`SSW_Report_${deal._id || 'Draft'}.pdf`);
+  } catch (error) {
+    console.error("PDF Error:", error);
+    alert("Error generating PDF. Check console for details.");
+  }
 };
-
 // --- VIEW 1: THE SHAREABLE RESULTS PAGE ---
 const SharedDealPage = () => {
   const { id } = useParams();
