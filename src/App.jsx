@@ -55,6 +55,30 @@ const generateProfessionalPDF = (deal) => {
     console.error("PDF_CORE_CRASH:", error);
   }
 };
+//Delete button
+const deleteDeal = async (id) => {
+    // 1. Logic Gate: Always confirm before a destructive action
+    if (!window.confirm("CRITICAL: Erase this record from the Cloud Archive permanently?")) return;
+    
+    setIsLoading(true);
+    try {
+        // 2. Network Request: Target the specific ID on your Render backend
+        const res = await fetch(`${API_BASE_URL}/api/deals/${id}`, { 
+            method: 'DELETE' 
+        });
+
+        if (res.ok) {
+            // 3. State Synchronization: Remove the item locally so it disappears instantly
+            setSavedDeals(prevDeals => prevDeals.filter(deal => deal._id !== id));
+            alert("RECORD PURGED");
+        }
+    } catch (err) {
+        console.error("DELETE_ERROR:", err);
+        alert("NETWORK FAILURE: UNABLE TO REACH CLOUD");
+    } finally {
+        setIsLoading(false);
+    }
+};
 
 // --- VIEW: SECURE SHARED NODE ---
 const SharedDealPage = () => {
@@ -321,6 +345,12 @@ const MainEngine = () => {
                                 <td className="p-8 text-right space-x-6">
                                     <button onClick={() => generateProfessionalPDF(deal)} className="text-zinc-500 hover:text-emerald-500 transition-colors uppercase font-black text-[10px]">PDF</button>
                                     <button onClick={() => window.open(`${window.location.origin}/#/deal/${deal._id}`, '_blank')} className="text-zinc-500 hover:text-white underline transition-colors uppercase font-black text-[10px]">Share</button>
+                                  <button 
+    onClick={() => deleteDeal(deal._id)} 
+    className="text-red-900 hover:text-red-500 font-black text-[10px] uppercase transition-colors"
+>
+    Delete
+</button>
                                 </td>
                             </tr>
                         ))}
