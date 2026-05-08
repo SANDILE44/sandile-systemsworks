@@ -63,14 +63,24 @@ const SharedDealPage = () => {
   const [loading, setLoading] = useState(true);
   const [scramble, setScramble] = useState("DECRYPTING...");
 
-  useEffect(() => {
+useEffect(() => {
+    setLoading(true);
     fetch(`${API_BASE_URL}/api/deals/${id}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("DEAL_NOT_FOUND");
+        return res.json();
+      })
       .then(data => { 
         setDeal(data); 
-        setTimeout(() => setLoading(false), 1200); 
+        // Small delay to make the "Establishing Link" animation look intentional
+        setTimeout(() => setLoading(false), 800); 
+      })
+      .catch(err => {
+        console.error("DECRYPTION_FAILURE:", err);
+        alert("CRITICAL_ERROR: Link is invalid or record has been purged.");
+        window.location.href = "/#/"; // Send them back to safety
       });
-  }, [id]);
+}, [id]);
 
   if (loading) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center">
@@ -97,7 +107,9 @@ const SharedDealPage = () => {
             <div className="space-y-8">
                 <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800">
                     <p className="text-zinc-500 text-[10px] uppercase font-bold mb-1">Projected Net Gain</p>
-                    <p className="text-5xl font-black text-white font-mono">R {Math.round(deal.profit).toLocaleString()}</p>
+                    <p className="text-5xl font-black text-white font-mono">
+    R {deal?.profit ? Math.round(deal.profit).toLocaleString() : '0'}
+</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -346,7 +358,16 @@ const MainEngine = () => {
                                 </td>
                                 <td className="p-8 text-right space-x-6">
                                     <button onClick={() => generateProfessionalPDF(deal)} className="text-zinc-500 hover:text-emerald-500 transition-colors uppercase font-black text-[10px]">PDF</button>
-                                    <button onClick={() => window.open(`${window.location.origin}/#/deal/${deal._id}`, '_blank')} className="text-zinc-500 hover:text-white underline transition-colors uppercase font-black text-[10px]">Share</button>
+                                    <button 
+  onClick={() => {
+    // This ensures we get the correct base path regardless of where it's hosted
+    const shareUrl = `${window.location.origin}${window.location.pathname}#/deal/${deal._id}`;
+    window.open(shareUrl, '_blank');
+  }} 
+  className="text-zinc-500 hover:text-white underline transition-colors uppercase font-black text-[10px]"
+>
+  Share
+</button>
                                   <button 
     onClick={() => deleteDeal(deal._id)} 
     className="text-red-900 hover:text-red-500 font-black text-[10px] uppercase transition-colors"
