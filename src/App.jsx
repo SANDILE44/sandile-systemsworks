@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useParams } from 'react-router-dom';
 import { jsPDF } from 'jspdf'; // Use curly braces
 import autoTable from 'jspdf-autotable'; // Import autoTable directly
 
@@ -345,12 +345,17 @@ const MainEngine = () => {
   );
 };
 
-// In App.jsx, make sure the Router is clean:
 const App = () => (
   <Router>
     <Routes>
+      {/* The main dashboard */}
       <Route path="/" element={<MainEngine />} />
+      
+      {/* The shared report page */}
       <Route path="/deal/:id" element={<SharedDealPage />} /> 
+
+      {/* SAFETY: Redirect any unknown hash path back to home */}
+      <Route path="*" element={<MainEngine />} />
     </Routes>
   </Router>
 );
