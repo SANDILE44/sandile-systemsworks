@@ -5,13 +5,13 @@ import 'jspdf-autotable';
 
 const API_BASE_URL = "https://systems-j894.onrender.com";
 
-// --- PDF GENERATION ENGINE ---
+// --- PDF GENERATION ENGINE (Fixed Keys) ---
 const generateProfessionalPDF = (deal) => {
   try {
-    const doc = new jsPDF();
+    const doc = jsPDF();
     const distance = Number(deal.distance) || 0;
     const offer = Number(deal.clientOffer) || 0;
-    const fuel = Number(deal.fuelPrice || deal.dieselPrice) || 0;
+    const fuel = Number(deal.fuelPrice) || 0;
     const profit = Number(deal.profit) || 0;
     const totalCost = Number(deal.totalCost) || 0;
     const margin = Number(deal.margin) || 0;
@@ -24,7 +24,7 @@ const generateProfessionalPDF = (deal) => {
     doc.setFont("helvetica", "bold");
     doc.text("SANDILE SYSTEMSWORKS", 14, 25);
     doc.setFontSize(10);
-    doc.text("LOGISTICS INTELLIGENCE REPORT | SECURE DATA", 14, 32);
+    doc.text(`INTELLIGENCE FOR: ${deal.companyName?.toUpperCase() || 'GENERAL OPERATIONS'}`, 14, 32);
 
     const tableData = [
       ["Operational Distance", `${distance} KM`],
@@ -50,7 +50,7 @@ const generateProfessionalPDF = (deal) => {
     doc.text(`Report ID: ${deal._id || 'DRAFT'} | Generated: ${new Date().toLocaleString()}`, 14, 280);
     doc.text("© Sandile SystemsWorks - Enterprise Logistics Logic", 14, 285);
     
-    doc.save(`Logistics_Report_${deal._id || 'Draft'}.pdf`);
+    doc.save(`Logistics_Report_${deal.companyName || 'Draft'}.pdf`);
   } catch (error) {
     console.error("PDF Error:", error);
   }
@@ -77,6 +77,7 @@ const SharedDealPage = () => {
       <div className="max-w-xl w-full bg-zinc-900 border border-emerald-500/30 p-10 rounded-3xl shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl italic">SSW</div>
         <h1 className="text-emerald-500 font-black italic text-xl mb-6">SANDILE SYSTEMSWORKS</h1>
+        <p className="text-xs text-zinc-500 mb-4 uppercase tracking-widest">Client: {deal.companyName}</p>
         <div className="grid grid-cols-2 gap-6 mb-8 border-b border-zinc-800 pb-8">
           <div>
             <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Net Profit</p>
@@ -84,13 +85,8 @@ const SharedDealPage = () => {
           </div>
           <div>
             <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Margin</p>
-            <p className="text-3xl font-mono text-white">{deal.margin.toFixed(1)}%</p>
+            <p className="text-3xl font-mono text-white">{deal.margin?.toFixed(1)}%</p>
           </div>
-        </div>
-        <div className="space-y-3 mb-8 text-sm text-zinc-400">
-          <div className="flex justify-between border-b border-zinc-800/50 pb-2"><span>Total Distance:</span> <span className="text-white">{deal.distance} KM</span></div>
-          <div className="flex justify-between border-b border-zinc-800/50 pb-2"><span>Gross Offer:</span> <span className="text-white">R{deal.clientOffer}</span></div>
-          <div className="flex justify-between border-b border-zinc-800/50 pb-2"><span>Verdict:</span> <span className={`font-bold ${deal.verdict === 'ACCEPT' ? 'text-emerald-500' : 'text-red-500'}`}>{deal.verdict}</span></div>
         </div>
         <button onClick={() => generateProfessionalPDF(deal)} className="w-full bg-emerald-500 text-black py-4 rounded-xl font-bold uppercase hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20">Download Intelligence Report</button>
       </div>
@@ -102,14 +98,14 @@ const SharedDealPage = () => {
 const MainEngine = () => {
   const [view, setView] = useState('engine'); 
   const [savedDeals, setSavedDeals] = useState([]);
-  const [inputs, setInputs] = useState({ distance: '', clientOffer: '', tolls: '', driverFee: '' });
+  const [inputs, setInputs] = useState({ distance: '', clientOffer: '', tolls: '', driverFee: '', companyName: '' });
   const [dieselPrice, setDieselPrice] = useState(25.50); 
   const [isLoading, setIsLoading] = useState(false);
 
   const calculation = useMemo(() => {
     const dist = parseFloat(inputs.distance) || 0;
     const offer = parseFloat(inputs.clientOffer) || 0;
-    const targetMargin = 0.20; 
+    const targetMargin = 0.20;
 
     const costs = ((dist / 2.5) * dieselPrice) + (dist * 8.5) + (parseFloat(inputs.tolls) || 0) + (parseFloat(inputs.driverFee) || 0);
     const profit = offer - costs;
@@ -122,6 +118,7 @@ const MainEngine = () => {
   const isRejected = calculation.margin < 15;
 
   const saveDeal = async () => {
+    if(!inputs.companyName) return alert("ENTER COMPANY NAME TO TAG DATA");
     setIsLoading(true);
     const payload = { ...inputs, fuelPrice: dieselPrice, ...calculation, verdict: isRejected ? 'REJECT' : 'ACCEPT' };
     try {
@@ -130,7 +127,7 @@ const MainEngine = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (res.ok) alert("LOGGED TO CLOUD SUCCESS");
+      if (res.ok) alert(`LOGGED TO ${inputs.companyName.toUpperCase()} CLOUD`);
     } catch (err) { alert("CONNECTION ERROR"); }
     finally { setIsLoading(false); }
   };
@@ -138,7 +135,10 @@ const MainEngine = () => {
   const fetchHistory = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/deals`);
+      const url = inputs.companyName 
+        ? `${API_BASE_URL}/api/deals?company=${inputs.companyName}` 
+        : `${API_BASE_URL}/api/deals`;
+      const res = await fetch(url);
       const data = await res.json();
       setSavedDeals(Array.isArray(data) ? data : []);
       setView('history');
@@ -165,9 +165,11 @@ const MainEngine = () => {
             <button onClick={fetchHistory} className={`text-[11px] uppercase font-bold tracking-widest ${view === 'history' ? 'text-emerald-500 border-b border-emerald-500' : 'text-zinc-600 hover:text-zinc-400'}`}>Database History</button>
           </nav>
         </div>
-        <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
-          <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Fuel Override (R/L)</p>
-          <input type="number" value={dieselPrice} onChange={(e) => setDieselPrice(e.target.value)} className="bg-transparent text-amber-500 font-mono text-xl w-20 outline-none" />
+        <div className="flex gap-4">
+          <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+            <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1 text-center">Fuel (R/L)</p>
+            <input type="number" value={dieselPrice} onChange={(e) => setDieselPrice(e.target.value)} className="bg-transparent text-amber-500 font-mono text-xl w-20 outline-none text-center" />
+          </div>
         </div>
       </header>
 
@@ -177,12 +179,16 @@ const MainEngine = () => {
             <h2 className="text-[11px] font-bold uppercase text-zinc-500 mb-8 tracking-widest border-l-2 border-emerald-500 pl-4">Logistics Variable Input</h2>
             <div className="space-y-6">
               <div className="group">
+                <label className="text-[9px] text-zinc-500 uppercase ml-2 italic text-emerald-500">Target Client / Company Name</label>
+                <input type="text" placeholder="e.g. Richards Bay Transporters" className="w-full bg-zinc-950 border border-emerald-500/20 p-5 rounded-2xl outline-none focus:border-emerald-500 text-lg font-bold" value={inputs.companyName} onChange={(e) => setInputs({...inputs, companyName: e.target.value})} />
+              </div>
+              <div className="group">
                 <label className="text-[9px] text-zinc-500 uppercase ml-2">Total Trip Distance (KM)</label>
-                <input type="number" placeholder="0.00" className="w-full bg-zinc-950 border border-zinc-800 p-5 rounded-2xl outline-none focus:border-emerald-500 group-hover:border-zinc-700 transition-all text-xl font-mono" onChange={(e) => setInputs({...inputs, distance: e.target.value})} />
+                <input type="number" placeholder="0.00" className="w-full bg-zinc-950 border border-zinc-800 p-5 rounded-2xl outline-none focus:border-emerald-500 transition-all text-xl font-mono" onChange={(e) => setInputs({...inputs, distance: e.target.value})} />
               </div>
               <div className="group">
                 <label className="text-[9px] text-zinc-500 uppercase ml-2">Client Offer Price (ZAR)</label>
-                <input type="number" placeholder="0.00" className="w-full bg-zinc-950 border border-zinc-800 p-5 rounded-2xl outline-none focus:border-emerald-500 group-hover:border-zinc-700 transition-all text-xl font-mono" onChange={(e) => setInputs({...inputs, clientOffer: e.target.value})} />
+                <input type="number" placeholder="0.00" className="w-full bg-zinc-950 border border-zinc-800 p-5 rounded-2xl outline-none focus:border-emerald-500 transition-all text-xl font-mono" onChange={(e) => setInputs({...inputs, clientOffer: e.target.value})} />
               </div>
               <div className="grid grid-cols-2 gap-6">
                 <div className="group">
@@ -237,13 +243,13 @@ const MainEngine = () => {
         <main className="max-w-6xl mx-auto animate-in zoom-in-95 duration-500">
           <div className="bg-zinc-950 border border-zinc-900 rounded-[2rem] overflow-hidden shadow-2xl">
             <div className="p-8 border-b border-zinc-900 flex justify-between items-center">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-400">Shipment Archive</h2>
-                <p className="text-[10px] text-zinc-600 uppercase font-mono">{savedDeals.length} RECORDS FOUND</p>
+                <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-400">Shipment Archive {inputs.companyName && `- ${inputs.companyName}`}</h2>
+                <button onClick={() => setInputs({...inputs, companyName: ''})} className="text-[10px] text-emerald-500 underline uppercase">Clear Filter</button>
             </div>
             <table className="w-full text-left">
               <thead className="bg-zinc-900/50 text-[10px] uppercase text-zinc-500 border-b border-zinc-900">
                 <tr>
-                  <th className="p-6">Date</th>
+                  <th className="p-6">Client</th>
                   <th className="p-6">Trip (KM)</th>
                   <th className="p-6">Net Profit</th>
                   <th className="p-6">Margin</th>
@@ -253,22 +259,19 @@ const MainEngine = () => {
               <tbody className="text-xs font-mono">
                 {savedDeals.map((deal) => (
                   <tr key={deal._id} className="border-b border-zinc-900/50 hover:bg-emerald-500/[0.02] transition-colors group">
-                    <td className="p-6 text-zinc-500">{new Date(deal.createdAt).toLocaleDateString()}</td>
+                    <td className="p-6 text-zinc-400 font-bold uppercase">{deal.companyName || 'N/A'}</td>
                     <td className="p-6">{deal.distance} KM</td>
                     <td className={`p-6 ${deal.profit > 0 ? 'text-emerald-400 font-bold' : 'text-red-400'}`}>R{Math.round(deal.profit).toLocaleString()}</td>
                     <td className="p-6">{deal.margin?.toFixed(1)}%</td>
                     <td className="p-6 text-right space-x-6">
                       <button onClick={() => generateProfessionalPDF(deal)} className="text-emerald-500 hover:text-white transition-colors uppercase text-[10px] font-bold">PDF</button>
                       <button onClick={() => window.open(`/deal/${deal._id}`, '_blank')} className="text-zinc-400 hover:text-white transition-colors uppercase text-[10px] font-bold underline">Link</button>
-                      <button onClick={() => deleteDeal(deal._id)} className="text-zinc-800 group-hover:text-red-500 transition-colors uppercase text-[10px] font-bold">Delete</button>
+                      <button onClick={() => deleteDeal(deal._id)} className="text-red-900 hover:text-red-500 transition-colors uppercase text-[10px] font-bold">Delete</button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {savedDeals.length === 0 && (
-              <div className="p-20 text-center text-zinc-700 uppercase font-bold tracking-widest">No Cloud Data Synchronized</div>
-            )}
           </div>
         </main>
       )}
