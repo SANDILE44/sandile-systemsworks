@@ -1,236 +1,239 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
-// --- CONFIGURATION ---
-// I replaced localhost with your Render URL
 const API_BASE_URL = "https://systems-j894.onrender.com";
 
-const App = () => {
+// --- PROFESSIONAL PDF ENGINE ---
+const generateProfessionalPDF = (deal) => {
+  const doc = new jsPDF();
+  const timestamp = new Date(deal.createdAt || Date.now()).toLocaleString();
+
+  // Branding Header
+  doc.setFillColor(16, 185, 129); // Emerald 500
+  doc.rect(0, 0, 210, 40, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(22);
+  doc.setFont("helvetica", "bold");
+  doc.text("SANDILE SYSTEMSWORKS", 14, 25);
+  doc.setFontSize(10);
+  doc.text("LOGISTICS INTELLIGENCE REPORT | RICHARDS BAY SECTOR", 14, 32);
+
+  // Data Section
+  doc.setTextColor(40, 40, 40);
+  doc.setFontSize(10);
+  doc.text(`Reference ID: ${deal._id || 'INTERNAL_DRAFT'}`, 14, 50);
+  doc.text(`Generated: ${timestamp}`, 14, 55);
+
+  const tableData = [
+    ["Metric", "Value"],
+    ["Distance", `${deal.distance} KM`],
+    ["Client Offer", `R ${Number(deal.clientOffer).toLocaleString()}`],
+    ["Diesel Price", `R ${deal.fuelPrice}/L`],
+    ["Total Trip Cost", `R ${Math.round(deal.totalCost).toLocaleString()}`],
+    ["Net Profit", `R ${Math.round(deal.profit).toLocaleString()}`],
+    ["Margin", `${deal.margin?.toFixed(2)}%`],
+    ["Final Verdict", deal.verdict]
+  ];
+
+  doc.autoTable({
+    startY: 65,
+    head: [['Logistics Analysis', 'Breakdown']],
+    body: tableData,
+    theme: 'striped',
+    headStyles: { fillColor: [16, 185, 129] }
+  });
+
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text("Confidential Algorithm Output - Sandile SystemsWorks", 14, 285);
+  doc.save(`SSW_Report_${deal._id || 'New'}.pdf`);
+};
+
+// --- VIEW 1: THE SHAREABLE RESULTS PAGE ---
+const SharedDealPage = () => {
+  const { id } = useParams();
+  const [deal, setDeal] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/deals/${id}`)
+      .then(res => res.json())
+      .then(data => { setDeal(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-emerald-500 font-mono italic">SCANNING CLOUD DATA...</div>;
+  if (!deal) return <div className="min-h-screen bg-black flex items-center justify-center text-red-500 font-bold">DEAL NOT FOUND</div>;
+
+  return (
+    <div className="min-h-screen bg-black text-white p-6 flex flex-col items-center justify-center">
+      <div className="max-w-xl w-full bg-zinc-900 border border-emerald-500 p-10 rounded-3xl shadow-2xl">
+        <h1 className="text-emerald-500 font-black italic text-xl mb-6">SANDILE SYSTEMSWORKS</h1>
+        <div className="grid grid-cols-2 gap-6 mb-8 border-b border-zinc-800 pb-8">
+          <div>
+            <p className="text-[10px] text-zinc-500 uppercase font-bold">Projected Profit</p>
+            <p className="text-3xl font-mono text-emerald-400">R{Math.round(deal.profit).toLocaleString()}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-zinc-500 uppercase font-bold">Margin</p>
+            <p className="text-3xl font-mono text-white">{deal.margin.toFixed(1)}%</p>
+          </div>
+        </div>
+        <div className="space-y-4 mb-8 text-sm opacity-80">
+          <div className="flex justify-between"><span>Distance:</span> <span>{deal.distance} KM</span></div>
+          <div className="flex justify-between"><span>Client Offer:</span> <span>R{deal.clientOffer}</span></div>
+          <div className="flex justify-between"><span>Verdict:</span> <span className="font-bold text-emerald-500">{deal.verdict}</span></div>
+        </div>
+        <button onClick={() => generateProfessionalPDF(deal)} className="w-full bg-emerald-500 text-black py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-emerald-400">Download Official PDF</button>
+      </div>
+    </div>
+  );
+};
+
+// --- VIEW 2: THE MAIN ENGINE ---
+const MainEngine = () => {
   const [view, setView] = useState('engine'); 
   const [savedDeals, setSavedDeals] = useState([]);
   const [inputs, setInputs] = useState({ distance: '', clientOffer: '', tolls: '', driverFee: '' });
-  const [dieselPrice, setDieselPrice] = useState(30.85);
+  const [dieselPrice] = useState(30.85);
   const [isLoading, setIsLoading] = useState(false);
 
-  const TRUCK_CONSUMPTION = 2.5; 
-  const OPERATIONAL_COST_PER_KM = 8.50;
-
-  // --- CALCULATE TOTAL PROFIT FOR HISTORY ---
-const totalLifetimeProfit = useMemo(() => {
-  // Add "Array.isArray" check to prevent the crash
-  if (!Array.isArray(savedDeals)) return 0; 
-  return savedDeals.reduce((sum, deal) => sum + (deal.profit || 0), 0);
-}, [savedDeals]);
-  
-
-  // --- PDF GENERATOR ---
-  const generatePDF = (dealData) => {
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text("SANDILE SYSTEMSWORKS", 14, 22);
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text("Logistics Intelligence Report | Richards Bay Sector", 14, 30);
-    
-    const tableData = [
-      ["Metric", "Value"],
-      ["Distance", `${dealData.distance} KM`],
-      ["Client Offer", `R ${dealData.clientOffer}`],
-      ["Fuel Price", `R ${dealData.fuelPrice}/L`],
-      ["Total Trip Cost", `R ${Math.round(dealData.totalCost)}`],
-      ["Net Profit", `R ${Math.round(dealData.profit)}`],
-      ["Margin", `${dealData.margin ? dealData.margin.toFixed(1) : 0}%`],
-      ["Verdict", dealData.verdict]
-    ];
-
-    doc.autoTable({
-      startY: 40,
-      head: [['Logistics Analysis', 'Details']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [16, 185, 129] }
-    });
-
-    doc.save(`Deal_Report_${new Date().getTime()}.pdf`);
-  };
-
-  // --- SHARE FUNCTION ---
-  const shareDeal = async (deal) => {
-    const text = `Logistics Deal: ${deal.distance}KM | Profit: R${Math.round(deal.profit)} | Margin: ${deal.margin.toFixed(1)}% | Verdict: ${deal.verdict}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: 'Sandile SystemsWorks Deal', text: text, url: window.location.href });
-      } catch (err) { console.log("Share failed"); }
-    } else {
-      navigator.clipboard.writeText(text);
-      alert("Deal summary copied to clipboard!");
-    }
-  };
-
-  // --- LOGIC & DB ---
   const calculation = useMemo(() => {
     const dist = parseFloat(inputs.distance) || 0;
     const offer = parseFloat(inputs.clientOffer) || 0;
-    const totalCost = ((dist / TRUCK_CONSUMPTION) * dieselPrice) + (dist * OPERATIONAL_COST_PER_KM) + (parseFloat(inputs.tolls) || 0) + (parseFloat(inputs.driverFee) || 0);
-    const profit = offer - totalCost;
+    const costs = ((dist / 2.5) * dieselPrice) + (dist * 8.5) + (parseFloat(inputs.tolls) || 0) + (parseFloat(inputs.driverFee) || 0);
+    const profit = offer - costs;
     const margin = offer > 0 ? (profit / offer) * 100 : 0;
-    return { totalCost, profit, margin };
+    return { totalCost: costs, profit, margin };
   }, [inputs, dieselPrice]);
 
-  const isRejected = calculation.margin < 15;
+  const totalLifetimeProfit = useMemo(() => {
+    return Array.isArray(savedDeals) ? savedDeals.reduce((sum, d) => sum + (d.profit || 0), 0) : 0;
+  }, [savedDeals]);
 
   const saveDeal = async () => {
     setIsLoading(true);
-    const payload = { ...inputs, fuelPrice: dieselPrice, ...calculation, verdict: isRejected ? 'REJECT' : 'ACCEPT' };
+    const payload = { ...inputs, fuelPrice: dieselPrice, ...calculation, verdict: calculation.margin < 15 ? 'REJECT' : 'ACCEPT' };
     try {
       const res = await fetch(`${API_BASE_URL}/api/deals`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (res.ok) alert("✅ LOGGED TO CLOUD DATABASE");
-    } catch (err) { 
-      alert("❌ CLOUD OFFLINE: Check Render logs"); 
-    } finally {
-      setIsLoading(false);
-    }
+      if (res.ok) alert("✅ LOGGED TO CLOUD");
+    } catch (err) { alert("❌ SYNC FAILED"); }
+    finally { setIsLoading(false); }
   };
 
-const fetchHistory = async () => {
-  setIsLoading(true);
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/deals`);
-    
-    if (!res.ok) throw new Error("Server Error"); // Catch the 500 error
+  const fetchHistory = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/deals`);
+      const data = await res.json();
+      setSavedDeals(Array.isArray(data) ? data : []);
+      setView('history');
+    } catch (err) { setSavedDeals([]); }
+    finally { setIsLoading(false); }
+  };
 
-    const data = await res.json();
-    
-    // Ensure we only set data if it's actually an array
-    setSavedDeals(Array.isArray(data) ? data : []);
-    setView('history');
-  } catch (err) { 
-    console.error("Fetch error:", err);
-    alert("Database unreachable or Server Error!"); 
-    setSavedDeals([]); // Set to empty array so the app doesn't crash
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const shareDeal = async (deal) => {
+    const shareUrl = `${window.location.origin}/deal/${deal._id}`;
+    if (navigator.share) {
+      await navigator.share({ title: 'SSW Logistics Report', url: shareUrl });
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      alert("Professional Link Copied!");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white font-sans p-6">
       <header className="flex justify-between items-center mb-12 border-b border-zinc-800 pb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tighter text-emerald-500 uppercase italic">Sandile SystemsWorks</h1>
+          <h1 className="text-xl font-black italic text-emerald-500 uppercase tracking-tighter">Sandile SystemsWorks</h1>
           <nav className="flex gap-6 mt-4">
-            <button onClick={() => setView('engine')} className={`text-xs uppercase tracking-[0.2em] font-bold ${view === 'engine' ? 'text-white' : 'text-zinc-600'}`}>Engine</button>
-            <button onClick={fetchHistory} className={`text-xs uppercase tracking-[0.2em] font-bold ${view === 'history' ? 'text-white' : 'text-zinc-600'}`}>History</button>
+            <button onClick={() => setView('engine')} className={`text-[10px] uppercase font-bold tracking-[0.2em] ${view === 'engine' ? 'text-white' : 'text-zinc-600'}`}>Engine</button>
+            <button onClick={fetchHistory} className={`text-[10px] uppercase font-bold tracking-[0.2em] ${view === 'history' ? 'text-white' : 'text-zinc-600'}`}>History</button>
           </nav>
         </div>
         <div className="text-right">
-          <p className="text-xs text-zinc-500 uppercase font-bold tracking-widest">Diesel Price</p>
-          <p className="text-2xl font-mono text-amber-400 font-bold">R{dieselPrice.toFixed(2)}/L</p>
+          <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Diesel</p>
+          <p className="text-xl font-mono text-amber-400 font-bold">R{dieselPrice.toFixed(2)}</p>
         </div>
       </header>
 
       {view === 'engine' ? (
         <main className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-          <section className="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-2xl">
-            <h2 className="text-sm font-bold uppercase text-zinc-500 mb-6">Input Matrix</h2>
-            <div className="space-y-6">
-              <input type="number" placeholder="Distance (KM)" className="w-full bg-black border border-zinc-700 p-4 rounded-xl focus:border-emerald-500 outline-none" onChange={(e) => setInputs({...inputs, distance: e.target.value})} />
-              <input type="number" placeholder="Offer (ZAR)" className="w-full bg-black border border-zinc-700 p-4 rounded-xl focus:border-emerald-500 outline-none" onChange={(e) => setInputs({...inputs, clientOffer: e.target.value})} />
+          <section className="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl">
+            <h2 className="text-[10px] font-bold uppercase text-zinc-500 mb-6">Input Matrix</h2>
+            <div className="space-y-4">
+              <input type="number" placeholder="Distance (KM)" className="w-full bg-black border border-zinc-800 p-4 rounded-xl outline-none focus:border-emerald-500" onChange={(e) => setInputs({...inputs, distance: e.target.value})} />
+              <input type="number" placeholder="Offer (ZAR)" className="w-full bg-black border border-zinc-800 p-4 rounded-xl outline-none focus:border-emerald-500" onChange={(e) => setInputs({...inputs, clientOffer: e.target.value})} />
               <div className="grid grid-cols-2 gap-4">
-                <input type="number" placeholder="Tolls" className="bg-black border border-zinc-700 p-4 rounded-xl" onChange={(e) => setInputs({...inputs, tolls: e.target.value})} />
-                <input type="number" placeholder="Driver Fee" className="bg-black border border-zinc-700 p-4 rounded-xl" onChange={(e) => setInputs({...inputs, driverFee: e.target.value})} />
+                <input type="number" placeholder="Tolls" className="bg-black border border-zinc-800 p-4 rounded-xl" onChange={(e) => setInputs({...inputs, tolls: e.target.value})} />
+                <input type="number" placeholder="Driver" className="bg-black border border-zinc-800 p-4 rounded-xl" onChange={(e) => setInputs({...inputs, driverFee: e.target.value})} />
               </div>
             </div>
           </section>
 
-          <section className={`p-8 rounded-2xl border flex flex-col justify-between transition-all duration-500 ${isRejected ? 'bg-red-950/20 border-red-500' : 'bg-emerald-950/20 border-emerald-500'}`}>
-            <div className="text-center">
-              <h3 className={`text-7xl font-black italic uppercase ${isRejected ? 'text-red-500' : 'text-emerald-500'}`}>{isRejected ? 'Reject' : 'Accept'}</h3>
-              <p className="text-sm mt-2 opacity-70 italic">Calculated Margin: {calculation.margin.toFixed(1)}%</p>
+          <section className={`p-8 rounded-2xl border transition-all ${calculation.margin < 15 ? 'bg-red-950/10 border-red-500/50' : 'bg-emerald-950/10 border-emerald-500/50'}`}>
+            <div className="text-center mb-10">
+              <h3 className={`text-6xl font-black italic uppercase ${calculation.margin < 15 ? 'text-red-500' : 'text-emerald-500'}`}>{calculation.margin < 15 ? 'Reject' : 'Accept'}</h3>
+              <p className="text-xs mt-2 text-zinc-500">Projected Margin: {calculation.margin.toFixed(1)}%</p>
             </div>
-            
             <div className="space-y-3">
-              <button 
-                onClick={saveDeal} 
-                disabled={isLoading}
-                className="w-full bg-emerald-500 text-black py-4 rounded-xl font-bold hover:bg-emerald-400 transition disabled:opacity-50"
-              >
-                {isLoading ? "SYNCING..." : "LOG TO CLOUD"}
-              </button>
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => generatePDF({...inputs, ...calculation, fuelPrice: dieselPrice, verdict: isRejected ? 'REJECT' : 'ACCEPT'})} className="bg-zinc-800 text-white py-3 rounded-xl text-xs font-bold uppercase hover:bg-zinc-700 transition">Export PDF</button>
-                <button onClick={() => shareDeal({...inputs, ...calculation, verdict: isRejected ? 'REJECT' : 'ACCEPT'})} className="bg-zinc-800 text-white py-3 rounded-xl text-xs font-bold uppercase hover:bg-zinc-700 transition">Share Deal</button>
-              </div>
-            </div>
-
-            <div className="flex justify-between pt-6 border-t border-white/10 mt-6 font-mono text-xs">
-               <div className="text-left">
-                  <p className="text-zinc-500 uppercase">Est. Cost</p>
-                  <p className="text-lg">R{Math.round(calculation.totalCost).toLocaleString()}</p>
-               </div>
-               <div className="text-right">
-                  <p className="text-zinc-500 uppercase">Net Profit</p>
-                  <p className={`text-lg font-bold ${calculation.profit > 0 ? 'text-emerald-400' : 'text-red-500'}`}>R{Math.round(calculation.profit).toLocaleString()}</p>
-               </div>
+              <button onClick={saveDeal} disabled={isLoading} className="w-full bg-emerald-500 text-black py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-emerald-400 disabled:opacity-50">Log to Cloud</button>
+              <button onClick={() => generateProfessionalPDF({...inputs, ...calculation, fuelPrice: dieselPrice, verdict: calculation.margin < 15 ? 'REJECT' : 'ACCEPT'})} className="w-full bg-zinc-800 text-white py-3 rounded-xl text-[10px] font-bold uppercase hover:bg-zinc-700">Export Pro PDF</button>
             </div>
           </section>
         </main>
       ) : (
-        <main className="max-w-6xl mx-auto">
+        <main className="max-w-5xl mx-auto">
           <div className="flex justify-between items-end mb-8">
-            <div>
-              <h2 className="text-2xl font-bold italic text-emerald-500 uppercase">Operations History</h2>
-              <p className="text-zinc-500 text-xs mt-1 uppercase tracking-widest">Cloud Database Sync: Active</p>
-            </div>
-            <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl text-right">
-              <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Lifetime Managed Profit</p>
-              <p className="text-2xl font-mono text-emerald-500 font-bold">R{Math.round(totalLifetimeProfit).toLocaleString()}</p>
+            <h2 className="text-xl font-bold italic text-emerald-500 uppercase">Operations History</h2>
+            <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl text-right">
+              <p className="text-[10px] text-zinc-500 uppercase font-bold">Lifetime Profit</p>
+              <p className="text-xl font-mono text-emerald-500">R{Math.round(totalLifetimeProfit).toLocaleString()}</p>
             </div>
           </div>
-          
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
             <table className="w-full text-left">
-              <thead>
-                <tr className="bg-zinc-800/50 text-[10px] uppercase tracking-widest text-zinc-500">
-                  <th className="p-6">Date</th>
-                  <th className="p-6">Distance</th>
-                  <th className="p-6">Profit</th>
-                  <th className="p-6">Margin</th>
-                  <th className="p-6 text-right">Actions</th>
-                </tr>
+              <thead className="bg-zinc-800/50 text-[9px] uppercase text-zinc-500">
+                <tr><th className="p-5">Date</th><th className="p-5">KM</th><th className="p-5">Profit</th><th className="p-5">Margin</th><th className="p-5 text-right">Action</th></tr>
               </thead>
-              <tbody className="text-sm font-mono">
-                {savedDeals.length === 0 ? (
-                  <tr><td colSpan="5" className="p-20 text-center text-zinc-600 uppercase tracking-widest">No Cloud Data Found</td></tr>
-                ) : (
-                  savedDeals.map((deal, i) => (
-                    <tr key={i} className="border-t border-zinc-800 hover:bg-white/5 transition">
-                      <td className="p-6 text-zinc-500">{new Date(deal.createdAt).toLocaleDateString()}</td>
-                      <td className="p-6 font-bold">{deal.distance} KM</td>
-                      <td className={`p-6 ${deal.profit > 0 ? 'text-emerald-500' : 'text-red-500'}`}>R{Math.round(deal.profit).toLocaleString()}</td>
-                      <td className="p-6 italic">{deal.margin ? deal.margin.toFixed(1) : 0}%</td>
-                      <td className="p-6 text-right space-x-4">
-                        <button onClick={() => generatePDF(deal)} className="text-emerald-500 hover:underline text-[10px] uppercase font-bold">PDF</button>
-                        <button onClick={() => shareDeal(deal)} className="text-zinc-400 hover:underline text-[10px] uppercase font-bold">Share</button>
-                      </td>
-                    </tr>
-                  ))
-                )}
+              <tbody className="text-xs font-mono">
+                {savedDeals.map((deal, i) => (
+                  <tr key={i} className="border-t border-zinc-800 hover:bg-white/5">
+                    <td className="p-5 text-zinc-500">{new Date(deal.createdAt).toLocaleDateString()}</td>
+                    <td className="p-5">{deal.distance} KM</td>
+                    <td className={`p-5 ${deal.profit > 0 ? 'text-emerald-500' : 'text-red-500'}`}>R{Math.round(deal.profit).toLocaleString()}</td>
+                    <td className="p-5">{deal.margin?.toFixed(1)}%</td>
+                    <td className="p-5 text-right space-x-3">
+                      <button onClick={() => generateProfessionalPDF(deal)} className="text-emerald-500 hover:underline">PDF</button>
+                      <button onClick={() => shareDeal(deal)} className="text-zinc-500 hover:underline">Share</button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </main>
       )}
-
-      <footer className="mt-24 text-center">
-        <p className="text-[10px] tracking-[0.4em] text-zinc-700 uppercase font-bold">Automated Logic by Sandile SystemsWorks • Richards Bay, ZA</p>
-      </footer>
     </div>
+  );
+};
+
+// --- FINAL APP ROUTER ---
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainEngine />} />
+        <Route path="/deal/:id" element={<SharedDealPage />} />
+      </Routes>
+    </Router>
   );
 };
 
