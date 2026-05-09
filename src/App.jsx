@@ -22,7 +22,7 @@ const generateProfessionalPDF = (deal) => {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
-    doc.text("SYSTEMSWORKS INTELLIGENCE", 14, 25);
+    doc.text("SANDILE SYSTEMSWORKS INTELLIGENCE", 14, 25);
     
     doc.setFontSize(10);
     doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
