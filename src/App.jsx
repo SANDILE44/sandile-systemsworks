@@ -71,7 +71,7 @@ const LoginPage = () => {
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-zinc-950 border border-emerald-500/30 rounded-3xl p-8 shadow-[0_0_50px_-12px_rgba(16,185,129,0.3)]">
         <div className="text-center mb-8">
-          <img src="logo.png" alt="SSW Logo" className="w-16 h-16 object-contain mx-auto mb-4" />
+          <img src="/logo.png" alt="SSW Logo" className="w-16 h-16 object-contain mx-auto mb-4" />
           <h1 className="text-2xl font-black uppercase tracking-tighter">Sandile SystemsWorks</h1>
           <p className="text-zinc-500 text-[10px] font-bold tracking-[0.2em] mt-2">SECURE_NODE_AUTH</p>
         </div>
@@ -160,7 +160,7 @@ const RegisterPage = () => {
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-zinc-950 border border-emerald-500/30 rounded-3xl p-8 shadow-[0_0_50px_-12px_rgba(16,185,129,0.3)]">
         <div className="text-center mb-8">
-          <img src="logo.png" alt="SSW Logo" className="w-16 h-16 object-contain mx-auto mb-4" />
+          <img src="/logo.png" alt="SSW Logo" className="w-16 h-16 object-contain mx-auto mb-4" />
           <h1 className="text-2xl font-black uppercase tracking-tighter">Create Account</h1>
           <p className="text-zinc-500 text-[10px] font-bold tracking-[0.2em] mt-2">NODE_REGISTRATION</p>
         </div>
@@ -315,7 +315,7 @@ const SharedDealPage = () => {
 
   if (loading) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-        <img src="logo.png" alt="SSW" className="w-16 h-16 mb-6 opacity-20 animate-pulse" />
+        <img src="/logo.png" alt="SSW" className="w-16 h-16 mb-6 opacity-20 animate-pulse" />
         <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-emerald-500 font-mono tracking-widest uppercase text-[10px]">Establishing Secure Link...</p>
     </div>
@@ -333,7 +333,7 @@ const SharedDealPage = () => {
       <div className="max-w-xl w-full bg-zinc-950 border border-emerald-500/30 p-1 rounded-3xl shadow-[0_0_50px_-12px_rgba(16,185,129,0.3)]">
         <div className="bg-black p-8 rounded-3xl border border-zinc-800">
             <div className="flex justify-between items-center mb-12">
-                <img src="logo.png" alt="SSW Logo" className="w-10 h-10 object-contain" />
+                <img src="/logo.png" alt="SSW Logo" className="w-10 h-10 object-contain" />
                 <div className="text-right">
                     <p className="text-[8px] text-zinc-500 uppercase tracking-widest">Node_Auth</p>
                     <p className="text-[10px] text-emerald-400 font-mono uppercase italic font-black">Verified_Output</p>
@@ -442,7 +442,7 @@ const MainEngine = () => {
       {/* HUD Header with Logo */}
       <nav className="border-b border-zinc-800 p-6 flex justify-between items-center sticky top-0 bg-black/80 backdrop-blur-xl z-50">
         <div className="flex items-center gap-4">
-            <img src="logo.png" alt="Logo" className="w-10 h-10 object-contain" />
+            <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
             <div>
                 <h1 className="text-xl font-black tracking-tighter uppercase italic leading-none">Sandile SystemsWorks</h1>
                 <p className="text-[8px] text-zinc-500 font-bold tracking-[.4em] mt-1">LOGISTICS_OPERATIONS_AI</p>
@@ -519,7 +519,7 @@ const MainEngine = () => {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full gap-4">
-                 <img src="logo.png" alt="" className="w-20 h-20 opacity-10 grayscale" />
+                 <img src="/logo.png" alt="" className="w-20 h-20 opacity-10 grayscale" />
                  <p className="text-zinc-800 font-black italic text-xl uppercase tracking-[0.2em]">Awaiting_Logic</p>
               </div>
             )}
