@@ -216,7 +216,6 @@ const MainEngine = () => {
       {/* HUD Header */}
       <nav className="border-b border-zinc-800 p-6 flex flex-col md:flex-row justify-between items-center gap-6 sticky top-0 bg-black/80 backdrop-blur-xl z-50">
         <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center font-black text-black italic text-xl shadow-[0_0_15px_rgba(16,185,129,0.4)]">SS</div>
             <div>
                 <h1 className="text-xl font-black tracking-tighter uppercase italic">Sandile SystemsWorks</h1>
                 <p className="text-[8px] text-zinc-500 font-bold tracking-[.4em]">LOGISTICS_OPERATIONS_AI</p>
