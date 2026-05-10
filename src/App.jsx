@@ -3,7 +3,6 @@ import { HashRouter as Router, Routes, Route, useParams, useNavigate } from 'rea
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import HomePage from './HomePage';
-import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 
 const API_BASE_URL = "https://systems-j894.onrender.com";
@@ -28,7 +27,7 @@ const apiCall = async (endpoint, options = {}) => {
   if (response.status === 401) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/#/login';
+    window.location.href = '#/login';
   }
 
   return response;
@@ -71,7 +70,7 @@ const LoginPage = () => {
       if (res.ok && data.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user || data));
-        navigate('/');
+        navigate('/dashboard');
       } else {
         setError(data.message || 'UNAUTHORIZED_ACCESS');
       }
@@ -171,7 +170,6 @@ const MainEngine = () => {
   const [dieselPrice] = useState(25.50); 
   const [isLoading, setIsLoading] = useState(false);
   const [currentResult, setCurrentResult] = useState(null);
-  const user = JSON.parse(localStorage.getItem('user'));
 
   const fetchArchive = async () => {
     const res = await apiCall('/api/deals', { method: 'GET' });
@@ -268,17 +266,10 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        {/* 1. PUBLIC LANDING PAGE (Entry Point) */}
         <Route path="/" element={<HomePage />} />
-        
-        {/* 2. AUTHENTICATION ROUTES */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        
-        {/* 3. PUBLIC SHAREABLE LINKS */}
         <Route path="/share/:id" element={<SharedDealPage />} />
-        
-        {/* 4. PROTECTED OPERATIONS CENTER (Main Engine) */}
         <Route 
           path="/dashboard" 
           element={
@@ -287,11 +278,10 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
-
-        {/* 5. CATCH-ALL (Redirects unknown paths to Home) */}
         <Route path="*" element={<HomePage />} />
       </Routes>
     </Router>
   );
 };
+
 export default App;
