@@ -266,10 +266,14 @@ const App = () => {
   return (
     <Router>
       <Routes>
+        {/* 1. This MUST be public and bare */}
         <Route path="/" element={<HomePage />} />
+        
+        {/* 2. Auth routes must also be public */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/share/:id" element={<SharedDealPage />} />
+        
+        {/* 3. ONLY this one gets the ProtectedRoute wrapper */}
         <Route 
           path="/dashboard" 
           element={
@@ -278,6 +282,8 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
+
+        {/* 4. Fallback */}
         <Route path="*" element={<HomePage />} />
       </Routes>
     </Router>
