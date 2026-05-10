@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const rawUrl = import.meta.env.VITE_API_URL || "https://systems-j894.onrender.com";
-const API_BASE_URL = rawUrl.replace(/\/$/, "");
+const API_BASE =
+  (import.meta.env.VITE_API_URL || 'https://systems-j894.onrender.com').replace(/\/$/, '');
+
+const LOGIN_URL = `${API_BASE}/api/auth/login`;
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -18,23 +20,28 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const res = await fetch(LOGIN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: email.toLowerCase().trim(),
+          email: email.trim().toLowerCase(),
           password,
         }),
       });
 
       const data = await res.json();
 
-      if (res.ok && data.token) {
+      if (!res.ok) {
+        setError(data.error || data.message || 'LOGIN_FAILED');
+        return;
+      }
+
+      if (data.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data));
         navigate('/dashboard');
       } else {
-        setError(data.error || 'LOGIN_FAILED');
+        setError('INVALID_SERVER_RESPONSE');
       }
     } catch (err) {
       setError('NETWORK_ERROR');
@@ -45,43 +52,56 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <form onSubmit={handleLogin} className="max-w-md w-full bg-zinc-950 p-8 rounded-2xl border border-emerald-500/30 space-y-4">
+      <div className="w-full max-w-md bg-zinc-950 border border-emerald-500/30 rounded-3xl p-8">
 
-        <h1 className="text-2xl font-bold text-emerald-500 text-center">Login</h1>
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-black text-emerald-500">SystemsWorks</h1>
+          <p className="text-zinc-500 text-xs mt-2">LOGIN</p>
+        </div>
 
-        <input
-          placeholder="Email"
-          className="w-full p-3 bg-black border border-zinc-700 rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <form onSubmit={handleLogin} className="space-y-4">
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full p-3 bg-black border border-zinc-700 rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <input
+            type="email"
+            placeholder="EMAIL"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full bg-black border border-zinc-800 p-4 rounded-xl"
+            required
+          />
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+          <input
+            type="password"
+            placeholder="PASSWORD"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full bg-black border border-zinc-800 p-4 rounded-xl"
+            required
+          />
+
+          {error && (
+            <div className="text-red-500 text-xs font-bold text-center">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-emerald-500 text-black font-black py-4 rounded-xl"
+          >
+            {loading ? 'LOADING...' : 'LOGIN'}
+          </button>
+        </form>
 
         <button
-          disabled={loading}
-          className="w-full bg-emerald-500 text-black font-bold p-3 rounded"
+          onClick={() => navigate('/register')}
+          className="w-full mt-6 text-emerald-500 text-sm"
         >
-          {loading ? 'Logging in...' : 'Login'}
+          Create account
         </button>
 
-        <p className="text-center text-sm">
-          No account?{' '}
-          <span className="text-emerald-400 cursor-pointer" onClick={() => navigate('/register')}>
-            Register
-          </span>
-        </p>
-      </form>
+      </div>
     </div>
   );
 };
