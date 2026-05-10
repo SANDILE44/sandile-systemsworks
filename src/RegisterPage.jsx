@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://systems-j894.onrender.com";
+const BASE = (import.meta.env.VITE_API_URL || "https://systems-j894.onrender.com").replace(/\/$/, "");
+const REGISTER_ENDPOINT = `${BASE}/api/auth/register`;
 
 const RegisterPage = () => {
   const navigate = useNavigate();
