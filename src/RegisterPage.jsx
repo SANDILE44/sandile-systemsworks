@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// 1. Define the BASE and the specific ENDPOINT
 const BASE = (import.meta.env.VITE_API_URL || "https://systems-j894.onrender.com").replace(/\/$/, "");
 const REGISTER_ENDPOINT = `${BASE}/api/auth/register`;
 
@@ -21,7 +22,8 @@ const RegisterPage = () => {
     setError('');
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      // 2. USE the REGISTER_ENDPOINT variable here
+      const res = await fetch(REGISTER_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -37,7 +39,7 @@ const RegisterPage = () => {
         setError(data.error || data.message || 'REGISTRATION_REJECTED');
       }
     } catch (err) {
-      setError('NETWORK_CRASH: Please try again.');
+      setError('NETWORK_CRASH: Server might be sleeping. Try again.');
     } finally {
       setLoading(false);
     }
@@ -94,7 +96,7 @@ const RegisterPage = () => {
 
         <p className="text-center text-zinc-600 text-xs mt-6">
           ALREADY_INITIALIZED?{' '}
-          <button onClick={() => navigate('/login')} className="text-emerald-500 hover:underline font-bold uppercase">Login Node</button>
+          <button type="button" onClick={() => navigate('/login')} className="text-emerald-500 hover:underline font-bold uppercase">Login Node</button>
         </p>
       </div>
     </div>
