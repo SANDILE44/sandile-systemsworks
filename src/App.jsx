@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, useParams, useNavigate } from 'rea
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import HomePage from './HomePage';
+import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 
 const API_BASE_URL = "https://systems-j894.onrender.com";
@@ -49,57 +50,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 // --- LOGIN COMPONENT ---
-const LoginPage = () => {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.toLowerCase().trim(), password }),
-      });
-      const data = await res.json();
-      if (res.ok && data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user || data));
-        navigate('/dashboard');
-      } else {
-        setError(data.message || 'UNAUTHORIZED_ACCESS');
-      }
-    } catch (err) {
-      setError('SYSTEM_OFFLINE');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-zinc-950 border border-emerald-500/30 rounded-3xl p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-black uppercase tracking-tighter text-emerald-500">Zon Logics</h1>
-          <p className="text-zinc-500 text-[10px] font-bold tracking-[0.2em]">SECURE_NODE_AUTH</p>
-        </div>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input type="email" placeholder="EMAIL" className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl outline-none focus:border-emerald-500 font-mono" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <input type="password" placeholder="PASSWORD" className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl outline-none focus:border-emerald-500 font-mono" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          {error && <div className="text-red-500 text-[10px] font-black uppercase">{error}</div>}
-          <button type="submit" disabled={loading} className="w-full bg-emerald-500 text-black font-black py-4 rounded-xl uppercase">
-            {loading ? 'AUTHENTICATING...' : 'ESTABLISH_SESSION'}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
+// LoginPage is defined in ./LoginPage.jsx
 
 // --- THE ENGINE: PDF GENERATOR ---
 const generateProfessionalPDF = (deal) => {
@@ -282,6 +233,7 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
+        <Route path="/share/:id" element={<SharedDealPage />} />
 
         {/* 4. Fallback */}
         <Route path="*" element={<HomePage />} />
