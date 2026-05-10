@@ -42,8 +42,9 @@ const LoginPage = () => {
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-zinc-950 border border-emerald-500/30 rounded-3xl p-8 shadow-[0_0_50px_-12px_rgba(16,185,129,0.3)]">
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="SSW" className="w-16 h-16 mx-auto mb-4" />
-          <h1 className="text-2xl font-black uppercase tracking-tighter">SystemsWorks</h1>
+          {/* LOGO ADDED HERE */}
+          <img src="/logo.png" alt="SystemsWorks" className="w-16 h-16 mx-auto mb-4" />
+          <h1 className="text-2xl font-black uppercase tracking-tighter text-emerald-500">SystemsWorks</h1>
           <p className="text-zinc-500 text-[10px] font-bold tracking-[0.2em] mt-2">SECURE_NODE_AUTH</p>
         </div>
 
@@ -78,7 +79,8 @@ const LoginPage = () => {
 
         <p className="text-center text-zinc-600 text-xs mt-6">
           NO_ACCOUNT?{' '}
-          <button onClick={() => navigate('/register')} className="text-emerald-500 hover:underline font-bold">CREATE_NODE</button>
+          {/* LINK TO REGISTER ADDED HERE */}
+          <button onClick={() => navigate('/register')} className="text-emerald-500 hover:underline font-bold uppercase">Create Account</button>
         </p>
       </div>
     </div>
