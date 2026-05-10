@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// 1. Define the BASE and the specific ENDPOINT
-const BASE = (import.meta.env.VITE_API_URL || "https://systems-j894.onrender.com").replace(/\/$/, "");
-const REGISTER_ENDPOINT = `${BASE}/api/auth/register`;
+const BASE_URL = "https://systems-j894.onrender.com".replace(/\/$/, "");
+const API_URL = `${BASE_URL}/api/auth/register`;
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -23,11 +22,11 @@ const RegisterPage = () => {
 
     try {
       // 2. USE the REGISTER_ENDPOINT variable here
-      const res = await fetch(REGISTER_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+    const res = await fetch(API_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(formData),
+});
 
       const data = await res.json();
 
