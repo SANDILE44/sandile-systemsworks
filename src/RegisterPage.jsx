@@ -6,12 +6,14 @@ const API_URL = `${BASE_URL}/api/auth/register`;
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     companyName: '',
     phoneNumber: '',
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -21,24 +23,37 @@ const RegisterPage = () => {
     setError('');
 
     try {
-      // 2. USE the REGISTER_ENDPOINT variable here
-    const res = await fetch(API_URL, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(formData),
-});
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+          companyName: formData.companyName.trim(),
+          phoneNumber: formData.phoneNumber.trim() || "N/A",
+        }),
+      });
 
       const data = await res.json();
 
-      if (res.ok && data.token) {
+      if (!res.ok) {
+        setError(data.error || 'REGISTRATION_FAILED');
+        return;
+      }
+
+      if (data.token) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user || data));
+        localStorage.setItem('userId', data._id);
+
         navigate('/dashboard');
       } else {
-        setError(data.error || data.message || 'REGISTRATION_REJECTED');
+        setError('INVALID_RESPONSE');
       }
+
     } catch (err) {
-      setError('NETWORK_CRASH: Server might be sleeping. Try again.');
+      setError('NETWORK_ERROR');
     } finally {
       setLoading(false);
     }
@@ -46,57 +61,70 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-zinc-950 border border-emerald-500/30 rounded-3xl p-8 shadow-[0_0_50px_-12px_rgba(16,185,129,0.3)]">
-        <div className="text-center mb-8">
-          <img src="/logo.png" alt="SystemsWorks" className="w-16 h-16 mx-auto mb-4" />
-          <h1 className="text-2xl font-black uppercase tracking-tighter text-emerald-500">SystemsWorks</h1>
-          <p className="text-zinc-500 text-[10px] font-bold tracking-[0.2em] mt-2">REGISTRATION_INITIALIZED</p>
-        </div>
+      <div className="max-w-md w-full bg-zinc-950 border border-emerald-500/30 rounded-3xl p-8">
 
-        <form onSubmit={handleRegister} className="space-y-3">
+        <h1 className="text-2xl font-black text-emerald-500 text-center mb-6">
+          Register
+        </h1>
+
+        <form onSubmit={handleRegister} className="space-y-4">
+
           <input
             type="text"
-            placeholder="COMPANY NAME"
-            className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl outline-none focus:border-emerald-500 text-sm font-mono"
-            onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-            required
-          />
-          <input
-            type="email"
-            placeholder="EMAIL ADDRESS"
-            className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl outline-none focus:border-emerald-500 text-sm font-mono"
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            required
-          />
-          <input
-            type="password"
-            placeholder="CREATE PASSWORD"
-            className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl outline-none focus:border-emerald-500 text-sm font-mono"
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            required
-          />
-          <input
-            type="tel"
-            placeholder="PHONE (OPTIONAL)"
-            className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl outline-none focus:border-emerald-500 text-sm font-mono"
-            onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+            placeholder="Company Name"
+            className="w-full p-3 bg-black border border-zinc-700 rounded"
+            onChange={(e) =>
+              setFormData({ ...formData, companyName: e.target.value })
+            }
           />
 
-          {error && <p className="text-red-500 text-[10px] font-black uppercase tracking-widest text-center">{error}</p>}
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full p-3 bg-black border border-zinc-700 rounded"
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full p-3 bg-black border border-zinc-700 rounded"
+            onChange={(e) =>
+              setFormData({ ...formData, password: e.target.value })
+            }
+            required
+          />
+
+          <input
+            type="tel"
+            placeholder="Phone (optional)"
+            className="w-full p-3 bg-black border border-zinc-700 rounded"
+            onChange={(e) =>
+              setFormData({ ...formData, phoneNumber: e.target.value })
+            }
+          />
+
+          {error && (
+            <p className="text-red-500 text-sm">{error}</p>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-4 rounded-xl uppercase tracking-widest mt-4 transition-all active:scale-95 disabled:opacity-50"
+            className="w-full bg-emerald-500 text-black font-bold py-3 rounded"
           >
-            {loading ? 'INITIALIZING...' : 'ACTIVATE_ACCOUNT'}
+            {loading ? 'Creating...' : 'Register'}
           </button>
+
         </form>
 
-        <p className="text-center text-zinc-600 text-xs mt-6">
-          ALREADY_INITIALIZED?{' '}
-          <button type="button" onClick={() => navigate('/login')} className="text-emerald-500 hover:underline font-bold uppercase">Login Node</button>
+        <p className="text-center text-zinc-500 text-xs mt-4">
+          Already have an account?
         </p>
+
       </div>
     </div>
   );
