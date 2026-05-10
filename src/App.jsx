@@ -37,15 +37,12 @@ const apiCall = async (endpoint, options = {}) => {
 // --- PROTECTED ROUTE CHECK ---
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!token) {
-      navigate('/login');
-    }
-  }, [token, navigate]);
+  if (!token) {
+    window.location.hash = '#/login';
+    return null;
+  }
 
-  if (!token) return null;
   return children;
 };
 
