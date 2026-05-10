@@ -297,21 +297,56 @@ const SharedDealPage = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/deals/share/${id}`)
-      .then(res => res.json())
-      .then(data => { 
+    // 1. Define the fetch function inside the effect
+    const fetchSharedDeal = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/deals/share/${id}`);
+        const data = await response.json();
+
         if (data.error) {
           setError(data.error);
         } else {
           setDeal(data);
         }
-        setTimeout(() => setLoading(false), 800); 
-      })
-      .catch(() => {
-        setError("CRITICAL_ERROR: Link invalid.");
-        setLoading(false);
-      });
+      } catch (err) {
+        console.error("Fetch Error:", err);
+        setError("CRITICAL_ERROR: Link invalid or expired.");
+      } finally {
+        // 2. Subtle delay to match your branding's "Logic Processing" feel
+        setTimeout(() => setLoading(false), 800);
+      }
+    };
+
+    fetchSharedDeal();
   }, [id]);
+
+  // Handle Error State
+  if (error) return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-red-500">
+      <h1 className="text-2xl font-bold tracking-widest">ACCESS_DENIED</h1>
+      <p className="mt-2 text-gray-500 uppercase tracking-tighter">{error}</p>
+    </div>
+  );
+
+  // Handle Loading State
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen bg-black">
+      <div className="animate-pulse flex flex-col items-center">
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-blue-500 font-mono text-sm tracking-widest uppercase">Decrypting_Node...</p>
+      </div>
+    </div>
+  );
+
+  // 3. Main Return (Your existing deal UI goes here)
+  return (
+    <div className="min-h-screen bg-slate-950 p-6">
+       {/* Map your deal data (e.g., deal.origin, deal.payout) here */}
+       <h1 className="text-white font-bold uppercase tracking-widest">Deal Node: {id}</h1>
+       {/* ... rest of your UI ... */}
+    </div>
+  );
+};
 
   if (loading) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center">
