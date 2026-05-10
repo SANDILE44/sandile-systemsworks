@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = "https://systems-j894.onrender.com";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const RegisterPage = () => {
   const navigate = useNavigate();

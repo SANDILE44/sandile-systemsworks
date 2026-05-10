@@ -6,7 +6,7 @@ import HomePage from './HomePage';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 
-const API_BASE_URL = "https://systems-j894.onrender.com";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // --- UTILITY: API CALL WITH AUTH ---
 const apiCall = async (endpoint, options = {}) => {
