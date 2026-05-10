@@ -17,7 +17,6 @@ const LoginPage = () => {
     setLoading(true);
     setError('');
 
-    // Construct precise endpoint
     const endpoint = `${API_BASE_URL}/api/auth/login`;
 
     try {
@@ -33,16 +32,13 @@ const LoginPage = () => {
       const data = await res.json();
 
       if (res.ok && data.token) {
-        // Store session data for SystemsWorks dashboard
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user || data));
         navigate('/dashboard');
       } else {
-        // Handle specific server errors
         setError(data.message || data.error || 'UNAUTHORIZED_ACCESS');
       }
     } catch (err) {
-      // Handle network or CORS handshake failures
       setError('SYSTEM_OFFLINE: Connection to Node failed.');
     } finally {
       setLoading(false);
@@ -64,6 +60,8 @@ const LoginPage = () => {
             <label className="text-[10px] font-black text-zinc-500 ml-2 uppercase">Identity_Node</label>
             <input
               type="email"
+              name="email" // Added for browser autofill support
+              autoComplete="username" // Helps browser find saved email/username
               placeholder="EMAIL ADDRESS"
               className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl outline-none focus:border-emerald-500 text-sm font-mono transition-all"
               value={email}
@@ -76,6 +74,8 @@ const LoginPage = () => {
             <label className="text-[10px] font-black text-zinc-500 ml-2 uppercase">Access_Key</label>
             <input
               type="password"
+              name="password" // Added for browser autofill support
+              autoComplete="current-password" // Explicitly tells browser this is the password field
               placeholder="PASSWORD"
               className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl outline-none focus:border-emerald-500 text-sm font-mono transition-all"
               value={password}
