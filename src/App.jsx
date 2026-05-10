@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import HomePage from './HomePage';
+import LoginPage from './LoginPage';
+import RegisterPage from './RegisterPage';
 
 const API_BASE_URL = "https://systems-j894.onrender.com";
 
@@ -265,13 +268,30 @@ const App = () => {
   return (
     <Router>
       <Routes>
+        {/* 1. PUBLIC LANDING PAGE (Entry Point) */}
+        <Route path="/" element={<HomePage />} />
+        
+        {/* 2. AUTHENTICATION ROUTES */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        
+        {/* 3. PUBLIC SHAREABLE LINKS */}
         <Route path="/share/:id" element={<SharedDealPage />} />
-        <Route path="/" element={<ProtectedRoute><MainEngine /></ProtectedRoute>} />
-        <Route path="*" element={<MainEngine />} />
+        
+        {/* 4. PROTECTED OPERATIONS CENTER (Main Engine) */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <MainEngine />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* 5. CATCH-ALL (Redirects unknown paths to Home) */}
+        <Route path="*" element={<HomePage />} />
       </Routes>
     </Router>
   );
 };
-
 export default App;
