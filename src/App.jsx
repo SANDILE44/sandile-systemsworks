@@ -89,26 +89,64 @@ const SharedDealPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/deals/share/${id}`)
-      .then(res => res.json())
-      .then(data => { setDeal(data); setLoading(false); })
-      .catch(() => setLoading(false));
+    const fetchDeal = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/deals/share/${id}`);
+
+        if (!res.ok) {
+          setDeal(null);
+          setLoading(false);
+          return;
+        }
+
+        const data = await res.json();
+
+        setDeal(data);
+      } catch (err) {
+        setDeal(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDeal();
   }, [id]);
 
-  if (loading) return <div className="bg-black min-h-screen text-emerald-500 flex items-center justify-center font-mono">LOADING_LINK...</div>;
-  if (!deal) return <div className="bg-black min-h-screen text-red-500 flex items-center justify-center font-mono">LINK_EXPIRED</div>;
+  if (loading)
+    return (
+      <div className="bg-black min-h-screen text-emerald-500 flex items-center justify-center font-mono">
+        LOADING_LINK...
+      </div>
+    );
+
+  if (!deal)
+    return (
+      <div className="bg-black min-h-screen text-red-500 flex items-center justify-center font-mono">
+        LINK_NOT_FOUND_OR_EXPIRED
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
       <div className="max-w-xl w-full bg-zinc-950 border border-emerald-500/30 p-8 rounded-3xl">
-        <h2 className="text-zinc-500 uppercase text-[10px] mb-2 font-bold tracking-widest">Shared Analysis</h2>
-        <p className="text-5xl font-black mb-8 font-mono">R {Math.round(deal.profit).toLocaleString()}</p>
-        <button onClick={() => generateProfessionalPDF(deal)} className="w-full bg-emerald-500 text-black font-black py-4 rounded-xl uppercase">Download Report</button>
+        <h2 className="text-zinc-500 uppercase text-[10px] mb-2 font-bold tracking-widest">
+          Shared Analysis
+        </h2>
+
+        <p className="text-5xl font-black mb-8 font-mono">
+          R {Math.round(deal.profit).toLocaleString()}
+        </p>
+
+        <button
+          onClick={() => generateProfessionalPDF(deal)}
+          className="w-full bg-emerald-500 text-black font-black py-4 rounded-xl uppercase"
+        >
+          Download Report
+        </button>
       </div>
     </div>
   );
 };
-
 // --- VIEW: MAIN OPERATIONS CENTER ---
 const MainEngine = () => {
   const navigate = useNavigate();
