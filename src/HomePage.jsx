@@ -10,7 +10,7 @@ const HomePage = () => {
       <nav className="p-6 flex justify-between items-center border-b border-zinc-900 sticky top-0 bg-black/50 backdrop-blur-md z-50">
         <div className="flex items-center gap-2">
           <img src="/logo.png" alt="Logo" className="w-8 h-8" />
-          <span className="font-black tracking-tighter uppercase text-xl">SystemsWorks</span>
+          <span className="font-black tracking-tighter uppercase text-xl">Zon Logics</span>
         </div>
         <div className="flex gap-4">
           <button onClick={() => navigate('/login')} className="text-xs font-bold uppercase tracking-widest hover:text-emerald-500 transition-colors">Login</button>
